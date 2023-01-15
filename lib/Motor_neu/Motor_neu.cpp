@@ -30,7 +30,7 @@ void Motor::drive(int angle, int velocity, int angularVelocity){
 
 void Motor::setSpeed(int velocity){
   if(velocity < 0 && velocity >= -255){
-    //backward
+    //reverse
     velocity = -velocity;
     //dir1 = 1
     digitalWrite(dir1Pin[nr], 1);
