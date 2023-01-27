@@ -58,5 +58,4 @@ int gibZWert()
   sensors_event_t event;
   bno.getEvent(&event);
   return (int)event.orientation.x;
-  delay(50);
 }
