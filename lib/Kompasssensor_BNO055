@@ -1,0 +1,62 @@
+#include <Wire.h>
+#include <Adafruit_Sensor.h>
+#include <Adafruit_BNO055.h>
+#include <utility/imumaths.h>
+
+#define BNO055_SAMPLERATE_DELAY_MS (100)
+
+Adafruit_BNO055 bno = Adafruit_BNO055(55, 0x28);
+int zWertNull;
+
+void setup()
+{
+  Serial.begin(115200);
+  delay(500);
+  KompassStarten();
+  
+  //Folgendes wird zweimal ausgeführt, weil manchmal beim ersten Mal der BNO keine Werte ausgibt
+  zWertNull = gibZWert();
+  delay(100);
+  zWertNull = gibZWert();
+  Serial.println("Nun folgen normale Auslesungen");
+  delay(200);
+}
+
+void loop() {
+  Serial.println( ZWertAuslesen() );
+  delay(1000);
+}
+
+void KompassStarten()
+{
+  if(!bno.begin())
+  {
+    Serial.println("Kein BNO055 erkannt! Bitte Problem beheben und nochmals neustarten!");
+  }
+  delay(1000);
+  bno.setExtCrystalUse(true);
+  delay(500);
+}
+
+int ZWertAuslesen()
+{
+  int ausgelesenerZWert = gibZWert() - zWertNull;
+  int ausgabe = 0;
+  if( (ausgelesenerZWert) < 180 )
+  {
+    ausgabe = ausgelesenerZWert;
+  }
+  else 
+  {
+    ausgabe = ausgelesenerZWert - 360;
+  }
+  return ausgabe;
+}
+
+int gibZWert()
+{
+  sensors_event_t event;
+  bno.getEvent(&event);
+  return (int)event.orientation.x;
+  delay(50);
+}
