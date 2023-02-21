@@ -6,19 +6,19 @@
 //M2: VR
 //speed pins
 #define M1_PWM 2 
-#define M2_PWM 29
-#define M3_PWM -1
-#define M4_PWM -1
+#define M2_PWM 24
+#define M3_PWM 5
+#define M4_PWM 10
 //direction pin 1
-#define M1_IN1 6
-#define M2_IN1 27
-#define M3_IN1 -1
-#define M4_IN1 -1
+#define M1_IN1 3
+#define M2_IN1 25
+#define M3_IN1 6
+#define M4_IN1 11
 //direction pin 2
-#define M1_IN2 7
+#define M1_IN2 4
 #define M2_IN2 26
-#define M3_IN2 -1
-#define M4_IN2 -1
+#define M3_IN2 9
+#define M4_IN2 12
 
 struct Wheel{
    int angleToFrame;
