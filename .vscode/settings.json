@@ -1,5 +1,7 @@
 {
     "files.associations": {
-        "kompasssensor_bno055": "cpp"
+        "kompasssensor_bno055": "cpp",
+        "string": "cpp",
+        "initializer_list": "cpp"
     }
 }
