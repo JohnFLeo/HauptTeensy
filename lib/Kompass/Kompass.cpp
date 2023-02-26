@@ -16,7 +16,7 @@ bool Kompass::starten(){
         //Fehler!
         return false;
     }
-    delay(500);
+    delay(1000);
     bno.setExtCrystalUse(true);
     delay(500);
     zWertNull = gibZWert();

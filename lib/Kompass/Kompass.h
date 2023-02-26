@@ -1,6 +1,8 @@
 #ifndef _KOMPASS_H_
 #define _KOMPASS_H_
 
+#include <Adafruit_I2CDevice.h>
+#include <SPI.h>
 #include <Wire.h>
 #include <Adafruit_Sensor.h>
 #include <Adafruit_BNO055.h>
