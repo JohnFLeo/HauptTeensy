@@ -5,10 +5,13 @@ Robot::Robot(){
   Motor_HL.init();
   Motor_HR.init();
 }
+//positive angular velocity is counterclockwise
+//POV usb nach hinten:
+//angle = 0:  vorwärts
+//angle = 90: links
 void Robot::drive(int velocity, int angle, int angularVelocity){
   int maxV = getMaxVelocity(angle, 255 - angularVelocity);
   //Serial.print("MaxV: ");Serial.println( maxV);
-
   if(velocity> maxV && velocity >= 0){
     Motor_VL.drive(angle, maxV, angularVelocity);
     Motor_VR.drive(angle, maxV, angularVelocity);
@@ -26,6 +29,25 @@ void Robot::drive(int velocity, int angle, int angularVelocity){
     Motor_HR.drive(angle, velocity, angularVelocity);
   }
   //Serial.println();
+}
+void Robot::motorFahren(int index){
+  switch (index)
+  {
+  case 0:
+    Motor_VL.setSpeed(100);
+    break;
+  case 1:
+    Motor_VR.setSpeed(100);
+    break;
+  case 2:
+    Motor_HL.setSpeed(100);
+  break;
+  case 3:
+    Motor_HR.setSpeed(100);
+  break;
+  default:
+    break;
+  }
 }
 int Robot::getMaxVelocity(int angle, int maxVelocity){
   int m1 = abs(Motor_VL.getMaxVelocity(angle, maxVelocity));

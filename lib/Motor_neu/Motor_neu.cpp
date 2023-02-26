@@ -1,4 +1,5 @@
 #include "Motor_neu.h"
+
 //public
 Motor::Motor(Wheel wheel,int nr){
   this->nr = nr;

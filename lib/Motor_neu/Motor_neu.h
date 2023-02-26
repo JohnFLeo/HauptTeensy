@@ -1,9 +1,8 @@
 #ifndef _MOTOR_NEU_H_
 #define _MOTOR_NEU_H_
+
 #include <Arduino.h>
-//usb zu mir gerichtet 
-//M1: HR
-//M2: VR
+
 //speed pins
 #define M1_PWM 2 
 #define M2_PWM 24

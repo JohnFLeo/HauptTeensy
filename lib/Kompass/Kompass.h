@@ -1,0 +1,20 @@
+#ifndef _KOMPASS_H_
+#define _KOMPASS_H_
+
+#include <Wire.h>
+#include <Adafruit_Sensor.h>
+#include <Adafruit_BNO055.h>
+#include <utility/imumaths.h>
+
+#define BNO055_SAMPLERATE_DELAY_MS (100)
+class Kompass{
+private:
+    int gibZWert();
+    int zWertNull;
+    Adafruit_BNO055 bno;
+public:
+    Kompass();
+    bool starten();
+    int zWertAuslesen();
+};
+#endif
