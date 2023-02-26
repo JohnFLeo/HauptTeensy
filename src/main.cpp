@@ -5,7 +5,8 @@
 Robot robot;
 Kompass kompass;
 Led led;
-
+int zustand;
+bool teamblue = false;bool attacker = false;bool running = false;bool i4 = false;
 #define B_RO_PIN 39
 #define B_RU_PIN 37
 #define B_LO_PIN 38
@@ -22,12 +23,42 @@ void setup() {
   led.initLed();
   initButtons();
   initKompass();
-  //robot.drive(100,45,0);
+  zustand = 0;
 }
 void loop(){
-  Serial.println(kompass.zWertAuslesen());
+  switch (zustand){
+  case 0:
+    idle();
+    break;
+  case 1:
+    driveToBall();
+    break;
+  case 2:
+    driveToGoal();
+    break;
+  case 3:
+    shoot();
+    break;
+  default:
+    idle();
+    break;
+  }
 }
-
+//--------Zustands-Automat--------------------
+void idle(){
+  //Tue nichts
+  if(running) zustand = 1;
+}
+void driveToBall(){
+  if(!running) zustand = 0;
+}
+void driveToGoal(){
+  if(!running) zustand = 0;
+}
+void shoot(){
+  if(!running) zustand = 0;
+}
+//-----------Kompass-------------------
 void initKompass(){
   if(!kompass.starten()){
     while (true){//kompass funkt nicht
@@ -39,15 +70,15 @@ void initKompass(){
   led.setLedColor(4, GRUEN);
 }
 //-----------Toggle-Switch-Logic----------------
-bool i1 = false;bool i2 = false;bool i3 = false;bool i4 = false;
+bool teamblue = false;bool attacker = false;bool running = false;bool i4 = false;
 void InterruptHandler1(){
-  if(i1){i1 = false;led.setLedColor(0,GELB);}else{i1 = true; led.setLedColor(0,BLAU);}
+  if(teamblue){teamblue = false;led.setLedColor(0,GELB);}else{teamblue = true; led.setLedColor(0,BLAU);}
 }
 void InterruptHandler2(){
-  if(i2){i2 = false;led.setLedColor(1,ROT);}else{i2 = true; led.setLedColor(1,GELB);}
+  if(attacker){attacker = false;led.setLedColor(1,ROT);}else{attacker = true; led.setLedColor(1,GELB);}
 }
 void InterruptHandler3(){
-  if(i3){i3 = false;led.setLedColor(2,ROT);}else{i3 = true; led.setLedColor(2,WEISS);}
+  if(running){running = false;led.setLedColor(2,ROT);}else{running = true; led.setLedColor(2,WEISS);}
 }
 void InterruptHandler4(){
   if(i4){i4 = false;led.setLedColor(3,ROT);}else{i4 = true; led.setLedColor(3,BLAU);}
