@@ -1,8 +1,17 @@
 #include <Arduino.h>
 #include "Robot.h"
 #include "Kompass.h"
-//18, 19 kompass
+#include <Adafruit_NeoPixel.h>
 /*
+Kompass:
+  18, 19 
+LED-Strip:
+  13
+Buttons(POV usb zu mir):
+  rechts oben:  39 
+  rechts unten: 37
+  links oben:   38
+  links unten:  36
 Serial zu Pi:
   0->14,
   1->15 
@@ -20,6 +29,8 @@ ich bekomme:
 
 Robot robot;
 Kompass kompass;
+// Constructor: number of LEDs, pin number, LED type
+Adafruit_NeoPixel ledstrip = Adafruit_NeoPixel(8, 13);
 void setup() {
   Serial.begin(9600);
   pinMode(PIN_7, OUTPUT);
