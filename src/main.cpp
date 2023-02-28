@@ -16,14 +16,49 @@ bool teamblue = false;bool attacker = false;bool running = false;bool i4 = false
 void initKompass();
 void initButtons();
 void testLed();
-//---------------------------
 
+//--------Zustands-Automat--------------------
+void idle(){
+  //Tue nichts
+  robot.drive(0,0,0);
+  if(running){
+    Serial.println("Change to Running"); 
+    zustand = 1;
+    led.fill(WEISS);
+    led.setLedColor(0,GRUEN);
+  }
+}
+void driveToBall(){
+ robot.drive(0,0,100);
+ if(!running){ 
+    Serial.println("Change to Idle");
+    zustand = 0;
+    led.fill(WEISS);
+    led.setLedColor(0,GELB);
+  }
+}
+void driveToGoal(){
+  if(!running){ 
+    zustand = 0;
+    led.fill(WEISS);
+    led.setLedColor(0,GELB);
+  }
+}
+void shoot(){
+  if(!running){ 
+    zustand = 0;
+    led.fill(WEISS);
+    led.setLedColor(0,GELB);
+  }
+}
+//--------------------------------------------------
 void setup() {
   Serial.begin(9600);
   led.initLed();
   initButtons();
-  initKompass();
+  //initKompass();
   zustand = 0;
+  led.setLedColor(0,GELB);
 }
 void loop(){
   switch (zustand){
@@ -33,55 +68,33 @@ void loop(){
   case 1:
     driveToBall();
     break;
-  case 2:
-    driveToGoal();
-    break;
-  case 3:
-    shoot();
-    break;
   default:
-    idle();
     break;
   }
-}
-//--------Zustands-Automat--------------------
-void idle(){
-  //Tue nichts
-  if(running) zustand = 1;
-}
-void driveToBall(){
-  if(!running) zustand = 0;
-}
-void driveToGoal(){
-  if(!running) zustand = 0;
-}
-void shoot(){
-  if(!running) zustand = 0;
 }
 //-----------Kompass-------------------
 void initKompass(){
   if(!kompass.starten()){
     while (true){//kompass funkt nicht
       Serial.println("!!Fehler-bno!!");
-      led.setLedColor(4, ROT);
+      led.setLedColor(3, ROT);
       delay(1000);
     }
   }
-  led.setLedColor(4, GRUEN);
+  led.setLedColor(3, GRUEN);
 }
 //-----------Toggle-Switch-Logic----------------
-bool teamblue = false;bool attacker = false;bool running = false;bool i4 = false;
 void InterruptHandler1(){
-  if(teamblue){teamblue = false;led.setLedColor(0,GELB);}else{teamblue = true; led.setLedColor(0,BLAU);}
+  if(teamblue){teamblue = false;}else{teamblue = true; }
 }
 void InterruptHandler2(){
-  if(attacker){attacker = false;led.setLedColor(1,ROT);}else{attacker = true; led.setLedColor(1,GELB);}
+  if(attacker){attacker = false;}else{attacker = true; }
 }
 void InterruptHandler3(){
-  if(running){running = false;led.setLedColor(2,ROT);}else{running = true; led.setLedColor(2,WEISS);}
+  if(running){running = false;}else{running = true;}
 }
 void InterruptHandler4(){
-  if(i4){i4 = false;led.setLedColor(3,ROT);}else{i4 = true; led.setLedColor(3,BLAU);}
+  if(i4){i4 = false;}else{i4 = true;}
 }
 void initButtons(){
   attachInterrupt(digitalPinToInterrupt(B_RO_PIN), InterruptHandler1,RISING);//Team select
