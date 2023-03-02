@@ -1,5 +1,10 @@
-Kompass:
+Kompass:im uhrzeigersinn: positiv
   18, 19 
+Motor:
+  positive angular velocity is counterclockwise
+  POV usb nach hinten:
+  angle = 0:  vorwärts
+  angle = 90: links
 LED-Strip:
   13
 Buttons(POV usb zu mir):
@@ -9,7 +14,11 @@ Buttons(POV usb zu mir):
   links unten:  36
 Serial zu Pi:
   0->14,
-  1->15 
+  1->15
+  (aus sicht des Hauptteensy)Serial1 
+Serial zu Boden:
+  7 8
+  (aus sicht des Hauptteensy)Serial2
 ich schrebe zu pi:
   #b#    -> ball 
   #g_y#  -> tor gelb 
@@ -17,10 +26,7 @@ ich schrebe zu pi:
 ich bekomme:
   #winkel_distanz#
 
-Led 0: kompass erfolgreich?
-led 1, 2, 3, 4: Buttons
-led 5: verteidiger
-led 6: angreifer
+
 
 led anordnung (auf usb zu):
   0, 1, 2, 3, 6, 7, 4, 5

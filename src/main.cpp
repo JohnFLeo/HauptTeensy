@@ -6,6 +6,9 @@ Robot robot;
 Kompass kompass;
 Led led;
 int zustand;
+int zielWinkel;
+int zielDistanz;
+int drehung;
 bool teamblue = false;bool attacker = false;bool running = false;bool i4 = false;
 #define B_RO_PIN 39
 #define B_RU_PIN 37
@@ -16,7 +19,26 @@ bool teamblue = false;bool attacker = false;bool running = false;bool i4 = false
 void initKompass();
 void initButtons();
 void testLed();
-
+//--------Linie---------------------
+void liniePruefen(){
+  int length = Serial2.available();
+  for(int i=0; i<length;i++) {
+    int msg = Serial2.read();
+    if(msg!=0){
+      Serial.println(msg);
+    }
+  }
+}
+//--------PID-Fahren--------------------------
+int errorDrehung;
+int errorDistanz;
+int errorWinkel;
+void pidDrive(){
+  errorDrehung = kompass.zWertAuslesen()*1;
+  errorDistanz = zielDistanz*1;
+  errorWinkel = zielWinkel*1;
+  robot.drive(0, 0, errorDrehung);
+}
 //--------Zustands-Automat--------------------
 void idle(){
   //Tue nichts
@@ -29,8 +51,10 @@ void idle(){
   }
 }
 void driveToBall(){
- robot.drive(0,0,100);
- if(!running){ 
+  liniePruefen();
+  //datenVonPiAnfordern(BALL);
+  //pidDrive();
+  if(!running){ 
     Serial.println("Change to Idle");
     zustand = 0;
     led.fill(WEISS);
@@ -51,13 +75,60 @@ void shoot(){
     led.setLedColor(0,GELB);
   }
 }
+//-------Pi-Com-------------------------------
+typedef enum{
+  TOR_GELB = 0,
+  TOR_BLAU = 1,
+  BALL = 2
+}CamCom;
+void datenVonPiAnfordern(CamCom index){
+  switch (index){
+  case TOR_BLAU:
+    Serial1.write('b');
+    delay(50);
+    break;
+  case TOR_GELB:
+    Serial1.write('c');
+    break;
+  case BALL:
+    Serial1.write('a');
+    int length = Serial1.available();
+    for(int i=0; i<length;i++) {
+      int msg = Serial1.read();
+      switch (i){
+      case 0:
+        zielDistanz = msg;
+        break;
+      case 1:
+        zielWinkel = msg;//mit Paul besprechen
+        break;
+      case 2:
+        zielWinkel = msg;
+        break;
+      default:
+        break;
+      }
+    }
+    break;
+  default:
+    break;
+  }
+}
 //--------------------------------------------------
 void setup() {
   Serial.begin(9600);
+  //Serial1.begin(9600);
+  Serial2.begin(9600);
+  while(!Serial2){
+    Serial.println("Kein Serial2");
+  }
   led.initLed();
   initButtons();
-  //initKompass();
+  initKompass();
   zustand = 0;
+  zielDistanz = 0;
+  zielWinkel = 0;
+  drehung = 0;
   led.setLedColor(0,GELB);
 }
 void loop(){

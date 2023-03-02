@@ -5,10 +5,7 @@ Robot::Robot(){
   Motor_HL.init();
   Motor_HR.init();
 }
-//positive angular velocity is counterclockwise
-//POV usb nach hinten:
-//angle = 0:  vorwärts
-//angle = 90: links
+
 void Robot::drive(int velocity, int angle, int angularVelocity){
   int maxV = getMaxVelocity(angle, 255 - angularVelocity);
   //Serial.print("MaxV: ");Serial.println( maxV);
