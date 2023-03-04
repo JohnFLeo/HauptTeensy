@@ -2,68 +2,80 @@
 #include "Robot.h"
 #include "Kompass.h"
 #include "Led.h"
-Robot robot;
-Kompass kompass;
-Led led;
-int zustand;
-int zielWinkel;
-int zielDistanz;
-int drehung;
-bool teamblue = false;bool attacker = false;bool running = false;bool i4 = false;
+
 #define B_RO_PIN 39
 #define B_RU_PIN 37
 #define B_LO_PIN 38
 #define B_LU_PIN 36
 
-//-----declaration-----------
-void initKompass();
-void initButtons();
-void testLed();
-//--------Linie---------------------
-void liniePruefen(){
-  int length = Serial2.available();
-  for(int i=0; i<length;i++) {
-    int msg = Serial2.read();
-    if(msg!=0){
-      Serial.println(msg);
-    }
-  }
-}
-//--------PID-Fahren--------------------------
-int errorDrehung;
-int errorDistanz;
-int errorWinkel;
-void pidDrive(int v, int winkel){
-  errorDrehung = kompass.zWertAuslesen()*1;
-  robot.drive(v, winkel, errorDrehung);
-}
-//--------Zustands-Automat--------------------
-//-------Pi-Com-------------------------------
+#define minimaldistanz 10
+//----Objekte-------
+Robot robot;
+Kompass kompass;
+Led led;
+//-----Variablen------------
+int zustand = 0;
+//ist wert
+int ziel_distanz = 0;
+int ziel_winkel = 0;
+//soll wert
+int roboter_winkel = 0;
+
+bool teamblue = false;
+bool attacker = false;
+bool running = false;
+bool i4 = false;
+
 typedef enum{
   TOR_GELB = 0,
   TOR_BLAU = 1,
   BALL = 2
 }CamCom;
-void datenVonPiAnfordern(CamCom index){
-  switch (index){
-  case TOR_BLAU:
-    Serial1.println("b");
-    break;
-  case TOR_GELB:
-    Serial1.println("c");
-    break;
-  case BALL:
-    Serial1.println("a");
-    break;
+
+byte msg[3];
+//-----declaration-----------
+void initKompass();
+void pidDrive(int v, int winkel);
+void datenVonPiAnfordern(CamCom index);
+void idle();
+void driveToBall();
+void driveToGoal();
+void shoot();
+void read3Bytes();
+void liniePruefen();
+void initButtons();
+void testLed();
+//---------Hauptmethoden-------------
+void setup() {
+  Serial.begin(9600);
+  while(!Serial2){
+    Serial.println("Kein BodenTeensy");
   }
-  delay(100);
-  int length = Serial1.available();
-  for(int i=0; i<length;i++){
-    int msg = Serial1.read();
-    Serial.println(msg);
+  Serial1.begin(9600);
+  while (!Serial1){
+    Serial.println("Kein Pi");
   }
-  
+  led.initLed();
+  initButtons();
+  initKompass();
+  led.setLedColor(0,GELB);
 }
+void loop(){
+  switch (zustand){
+  case 0:
+    idle();
+    break;
+  case 1:
+    driveToBall();
+    break;
+  case 2:
+    driveToGoal();
+    break;
+  default:
+    break;
+  }
+}
+//--------Zustands-Automat--------------------
 void idle(){
   //Tue nichts
   robot.drive(0,0,0);
@@ -75,15 +87,18 @@ void idle(){
   }
 }
 void driveToBall(){
-  //liniePruefen();
-  datenVonPiAnfordern(BALL);
-  //pidDrive();
   if(!running){ 
     Serial.println("Change to Idle");
     zustand = 0;
     led.fill(WEISS);
     led.setLedColor(0,GELB);
   }
+  //liniePruefen();
+  datenVonPiAnfordern(BALL);
+  if(ziel_distanz < minimaldistanz){
+    zustand = 2;
+  }
+  //pidDrive(ziel_distanz,ziel_winkel);
 }
 void driveToGoal(){
   if(!running){ 
@@ -91,6 +106,17 @@ void driveToGoal(){
     led.fill(WEISS);
     led.setLedColor(0,GELB);
   }
+  //liniePruefen();
+  datenVonPiAnfordern(BALL);
+  if(ziel_distanz >= minimaldistanz){
+    zustand = 1;
+  }
+  if(teamblue){
+    datenVonPiAnfordern(TOR_BLAU);
+  }else{
+    datenVonPiAnfordern(TOR_GELB);
+  }
+  //pidDrive(ziel_distanz,ziel_winkel);
 }
 void shoot(){
   if(!running){ 
@@ -99,41 +125,50 @@ void shoot(){
     led.setLedColor(0,GELB);
   }
 }
-
-//--------------------------------------------------
-void setup() {
-  Serial.begin(9600);
-  while(!Serial2){
-    Serial.println("Kein BodenTeensy");
-  }
-  Serial1.begin(9600);
-  while (!Serial1){
-    Serial.println("Kein Pi");
-  }
-
-  led.initLed();
-  initButtons();
-  initKompass();
-  zustand = 0;
-  zielDistanz = 0;
-  zielWinkel = 0;
-  drehung = 0;
-  led.setLedColor(0,GELB);
+//--------PID-Fahren--------------------------
+int errorDrehung;
+void pidDrive(int v, int winkel){
+  errorDrehung = kompass.zWertAuslesen()*1;
+  robot.drive(v, winkel, errorDrehung);
 }
-void loop(){
-  Serial1.println("lalala\n");
-  Serial.println("lalala\n");
-  /*
-  switch (zustand){
-  case 0:
-    idle();
+//--------Linie---------------------
+void liniePruefen(){
+  int length = Serial2.available();
+  for(int i=0; i<length;i++) {
+    int msg = Serial2.read();
+    if(msg!=0){
+      //"Umdrehen"
+      //noch nicht umgesetzt
+      Serial.println(msg);
+    }
+  }
+}
+//-------Pi-Com-------------------------------
+void read3Bytes(){
+  delay(15);
+  if(Serial1.available()>0){
+    Serial1.readBytes(msg,3);
+  }
+  ziel_distanz = (int)msg[0];
+  if(msg[1] == 0){
+    ziel_winkel = (int)msg[2];
+  }else{
+    ziel_winkel = -(int)msg[2];
+  }
+  
+}
+void datenVonPiAnfordern(CamCom index){
+  switch (index){
+  case TOR_BLAU:
+    Serial1.println("b");read3Bytes();
     break;
-  case 1:
-    driveToBall();
+  case TOR_GELB:
+    Serial1.println("c");read3Bytes();
     break;
-  default:
+  case BALL:
+    Serial1.println("a");read3Bytes();
     break;
-  }*/
+  }
 }
 //-----------Kompass-------------------
 void initKompass(){
