@@ -53,7 +53,12 @@ private:
     M3_IN2,
     M4_IN2
   };
-  
+  double geschw[4] ={
+    0.7,
+    0.7,
+    0.9,
+    0.5
+  };
 public:
   Motor(Wheel, int nr);
   void init();

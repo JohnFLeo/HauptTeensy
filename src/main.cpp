@@ -8,7 +8,7 @@
 #define B_LO_PIN 38
 #define B_LU_PIN 36
 
-#define minimaldistanz 10
+#define minimaldistanz 0
 //----Objekte-------
 Robot robot;
 Kompass kompass;
@@ -19,7 +19,7 @@ int zustand = 0;
 int ziel_distanz = 0;
 int ziel_winkel = 0;
 //soll wert
-int roboter_winkel = 0;
+int roboter_winkel = 180;
 
 bool teamblue = false;
 bool attacker = false;
@@ -35,7 +35,7 @@ typedef enum{
 byte msg[3];
 //-----declaration-----------
 void initKompass();
-void pidDrive(int v, int winkel);
+void pidDrive(int winkel);
 void datenVonPiAnfordern(CamCom index);
 void idle();
 void driveToBall();
@@ -48,6 +48,7 @@ void testLed();
 //---------Hauptmethoden-------------
 void setup() {
   Serial.begin(9600);
+  Serial2.begin(9600);
   while(!Serial2){
     Serial.println("Kein BodenTeensy");
   }
@@ -59,6 +60,7 @@ void setup() {
   initButtons();
   initKompass();
   led.setLedColor(0,GELB);
+  
 }
 void loop(){
   switch (zustand){
@@ -68,22 +70,26 @@ void loop(){
   case 1:
     driveToBall();
     break;
-  case 2:
-    driveToGoal();
-    break;
   default:
     Serial.println("!!overflow zustand!!");
     break;
   }
 }
+bool linie= false;
 //--------Zustands-Automat--------------------
 void idle(){
   //Tue nichts
+  if(linie){
+    linie = false;
+    pidDrive(180);
+    delay(300);
+  }
+  robot.drive(0,0,0);
+  Serial2.begin(9600);
   robot.drive(0,0,0);
   if(running){
     Serial.println("Change to Running"); 
     zustand = 1;
-    led.fill(WEISS);
     led.setLedColor(0,GRUEN);
   }
 }
@@ -91,61 +97,27 @@ void driveToBall(){
   if(!running){ 
     Serial.println("Change to Idle");
     zustand = 0;
-    led.fill(WEISS);
     led.setLedColor(0,GELB);
-  }
-  //liniePruefen();
-  datenVonPiAnfordern(BALL);
-  //pidDrive(ziel_distanz,ziel_winkel);
-  if(ziel_distanz < minimaldistanz){
-    Serial.println("Change to Goal");
-    zustand = 2;
-  }
-  
-}
-void driveToGoal(){
-  if(!running){ 
-    Serial.println("Change to Idle");
-    zustand = 0;
-    led.fill(WEISS);
-    led.setLedColor(0,GELB);
-  }
-  //liniePruefen();
-  
-  if(teamblue){
-    datenVonPiAnfordern(TOR_BLAU);
   }else{
-    datenVonPiAnfordern(TOR_GELB);
+    liniePruefen();
+    pidDrive(0);
+
   }
-  //pidDrive(ziel_distanz,ziel_winkel);
-  datenVonPiAnfordern(BALL);
-  if(ziel_distanz >= minimaldistanz){
-    Serial.println("Change to Ball");
-    zustand = 1;
-  }
-}
-void shoot(){
-  if(!running){ 
-    zustand = 0;
-    led.fill(WEISS);
-    led.setLedColor(0,GELB);
-  }
-}
-//--------PID-Fahren--------------------------
-int errorDrehung;
-void pidDrive(int v, int winkel){
-  errorDrehung = kompass.zWertAuslesen()*1;
-  robot.drive(v, winkel, errorDrehung);
+}//--------PID-Fahren--------------------------
+int errorDrehung;int errorDrehung_last = 0;int errorDrehung_integral = 0;
+void pidDrive( int winkel){
+  robot.drive(10000, winkel+2*kompass.zWertAuslesen(), 2*kompass.zWertAuslesen());
 }
 //--------Linie---------------------
 void liniePruefen(){
   int length = Serial2.available();
   for(int i=0; i<length;i++) {
-    int msg = Serial2.read();
-    if(msg!=0){
-      //"Umdrehen"
-      //noch nicht umgesetzt
-      Serial.println(msg);
+    int msgT = Serial2.read();
+    //Serial.println(msgT);
+    if(msgT!=0){
+      running = false;linie = true;
+      led.setLedColor(2, GELB); 
+      Serial.println(msgT);
     }
   }
 }
@@ -157,9 +129,9 @@ void read3Bytes(){
   }
   ziel_distanz = (int)msg[0];
   if(msg[1] == 0b00000000){//wenn vorzeichen byte == 0b00000001 -> negativer winkel
-    ziel_winkel = (int)msg[2];
+    ziel_winkel = (-(int)msg[2])+90;
   }else{
-    ziel_winkel = -(int)msg[2];
+    ziel_winkel = ((int)msg[2])+90;
   }
   
 }
@@ -179,26 +151,38 @@ void datenVonPiAnfordern(CamCom index){
 //-----------Kompass-------------------
 void initKompass(){
   if(!kompass.starten()){
-    while (true){//kompass funkt nicht
       Serial.println("!!Fehler-bno!!");
       led.setLedColor(3, ROT);
-      delay(1000);
-    }
+  }else{
+    led.setLedColor(3, GRUEN);
   }
-  led.setLedColor(3, GRUEN);
 }
 //-----------Toggle-Switch-Logic----------------
+uint32_t timestamp1;uint32_t timestamp2;uint32_t timestamp3;uint32_t timestamp4;
 void InterruptHandler1(){
+  if((millis()-timestamp1 )<200)return;
+  timestamp1 = millis();
   if(teamblue){teamblue = false;}else{teamblue = true; }
 }
 void InterruptHandler2(){
+  if((millis()-timestamp2 )<200)return;
+  timestamp2 = millis();
   if(attacker){attacker = false;}else{attacker = true; }
 }
 void InterruptHandler3(){
+  if((millis()-timestamp3 )<200)return;
+  timestamp3 = millis();
   if(running){running = false;}else{running = true;}
 }
 void InterruptHandler4(){
-  if(i4){i4 = false;}else{i4 = true;}
+  if((millis()-timestamp4 )<200)return;
+  timestamp4 = millis();
+  led.setLedColor(3,BLAU);
+  delay(100);
+  initKompass();
+  //Serial1.begin(9600);
+  //Serial2.begin(9600);
+  delay(500);
 }
 void initButtons(){
   attachInterrupt(digitalPinToInterrupt(B_RO_PIN), InterruptHandler1,RISING);//Team select

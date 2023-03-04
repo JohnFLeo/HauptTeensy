@@ -30,6 +30,7 @@ void Motor::drive(int angle, int velocity, int angularVelocity){
 }
 
 void Motor::setSpeed(int velocity){
+  velocity = velocity*geschw[nr];
   if(velocity < 0 && velocity >= -255){
     //reverse
     velocity = -velocity;
