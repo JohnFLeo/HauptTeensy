@@ -95,28 +95,33 @@ void driveToBall(){
   }
   //liniePruefen();
   datenVonPiAnfordern(BALL);
+  //pidDrive(ziel_distanz,ziel_winkel);
   if(ziel_distanz < minimaldistanz){
+    Serial.println("Change to Goal");
     zustand = 2;
   }
-  //pidDrive(ziel_distanz,ziel_winkel);
+  
 }
 void driveToGoal(){
   if(!running){ 
+    Serial.println("Change to Idle");
     zustand = 0;
     led.fill(WEISS);
     led.setLedColor(0,GELB);
   }
   //liniePruefen();
-  datenVonPiAnfordern(BALL);
-  if(ziel_distanz >= minimaldistanz){
-    zustand = 1;
-  }
+  
   if(teamblue){
     datenVonPiAnfordern(TOR_BLAU);
   }else{
     datenVonPiAnfordern(TOR_GELB);
   }
   //pidDrive(ziel_distanz,ziel_winkel);
+  datenVonPiAnfordern(BALL);
+  if(ziel_distanz >= minimaldistanz){
+    Serial.println("Change to Ball");
+    zustand = 1;
+  }
 }
 void shoot(){
   if(!running){ 
