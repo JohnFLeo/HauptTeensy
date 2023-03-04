@@ -150,7 +150,7 @@ void read3Bytes(){
     Serial1.readBytes(msg,3);
   }
   ziel_distanz = (int)msg[0];
-  if(msg[1] == 0){
+  if(msg[1] == 0b00000000){//wenn vorzeichen byte == 0b00000001 -> negativer winkel
     ziel_winkel = (int)msg[2];
   }else{
     ziel_winkel = -(int)msg[2];
