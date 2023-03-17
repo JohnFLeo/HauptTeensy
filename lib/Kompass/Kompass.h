@@ -12,10 +12,12 @@
 class Kompass{
 private:
     int gibZWert();
-    int zWertNull;
+    
     Adafruit_BNO055 bno;
 public:
     Kompass();
+    int zWertNull;
+    void resetZwert();
     bool starten();
     int zWertAuslesen();
 };

@@ -26,6 +26,7 @@ void Motor::drive(int angle, int velocity, int angularVelocity){
     sin(beta) * vy//( wheel.xPos * angularVelocity + vy)
   )+angularVelocity;
   //Serial.print("M_");Serial.print(nr);Serial.print(": ");Serial.print(v);Serial.print("   ");
+   
   setSpeed(v);
 }
 

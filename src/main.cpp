@@ -34,8 +34,9 @@ typedef enum{
 
 byte msg[3];
 //-----declaration-----------
+void Bodeninterrupt();
 void initKompass();
-void pidDrive(int winkel);
+void pidDrive(int winkel, int v);
 void datenVonPiAnfordern(CamCom index);
 void idle();
 void driveToBall();
@@ -47,12 +48,12 @@ void initButtons();
 void testLed();
 //---------Hauptmethoden-------------
 void setup() {
-  Serial.begin(9600);
-  Serial2.begin(9600);
+  Serial.begin(9600);//Computer usb
+  Serial2.begin(9600);//bodenteensy
   while(!Serial2){
     Serial.println("Kein BodenTeensy");
   }
-  Serial1.begin(9600);
+  Serial1.begin(9600);//Raspi
   while (!Serial1){
     Serial.println("Kein Pi");
   }
@@ -70,6 +71,9 @@ void loop(){
   case 1:
     driveToBall();
     break;
+  case 2:
+    Bodeninterrupt();
+    break;
   default:
     Serial.println("!!overflow zustand!!");
     break;
@@ -77,16 +81,21 @@ void loop(){
 }
 bool linie= false;
 //--------Zustands-Automat--------------------
+void Bodeninterrupt(){
+  pidDrive(ziel_winkel+180 ,150);
+  liniePruefen();
+  if(!linie){
+    zustand = 1;
+  }
+}
 void idle(){
   //Tue nichts
-  if(linie){
-    linie = false;
-    pidDrive(180);
-    delay(300);
-  }
-  robot.drive(0,0,0);
+  //datenVonPiAnfordern(BALL);
+  //Serial.println(ziel_winkel);
   Serial2.begin(9600);
-  robot.drive(0,0,0);
+  pidDrive(0,0);
+  //robot.motorFahren(1);
+  //robot.drive(0,0,255);
   if(running){
     Serial.println("Change to Running"); 
     zustand = 1;
@@ -100,22 +109,27 @@ void driveToBall(){
     led.setLedColor(0,GELB);
   }else{
     liniePruefen();
-    pidDrive(0);
-
+    datenVonPiAnfordern(BALL);
+    //ziel_winkel = 90; 
+    Serial.println(ziel_winkel);
+    pidDrive(ziel_winkel,200);
+    //robot.drive(200,0,0);
   }
 }//--------PID-Fahren--------------------------
 int errorDrehung;int errorDrehung_last = 0;int errorDrehung_integral = 0;
-void pidDrive( int winkel){
-  robot.drive(10000, winkel+2*kompass.zWertAuslesen(), 2*kompass.zWertAuslesen());
+void pidDrive( int winkel,int v){
+  robot.drive(v, winkel+1*kompass.zWertAuslesen(), 1*kompass.zWertAuslesen());
 }
 //--------Linie---------------------
 void liniePruefen(){
   int length = Serial2.available();
   for(int i=0; i<length;i++) {
     int msgT = Serial2.read();
+    linie = false;
     //Serial.println(msgT);
     if(msgT!=0){
-      running = false;linie = true;
+      pidDrive(180,10000);
+      linie = true;zustand = 2;
       led.setLedColor(2, GELB); 
       Serial.println(msgT);
     }
@@ -123,17 +137,16 @@ void liniePruefen(){
 }
 //-------Pi-Com-------------------------------
 void read3Bytes(){
-  delay(15);
   if(Serial1.available()>0){
     Serial1.readBytes(msg,3);
   }
-  ziel_distanz = (int)msg[0];
   if(msg[1] == 0b00000000){//wenn vorzeichen byte == 0b00000001 -> negativer winkel
-    ziel_winkel = (-(int)msg[2])+90;
+    ziel_winkel = ((int)msg[2]);
+  }else if(msg[1]== 0b00000001){
+    ziel_winkel = (-(int)msg[2]);
   }else{
-    ziel_winkel = ((int)msg[2])+90;
+    Serial.println("Fehler!");
   }
-  
 }
 void datenVonPiAnfordern(CamCom index){
   switch (index){
@@ -145,6 +158,7 @@ void datenVonPiAnfordern(CamCom index){
     break;
   case BALL:
     Serial1.println("a");read3Bytes();
+    Serial.println("a");
     break;
   }
 }
@@ -175,14 +189,14 @@ void InterruptHandler3(){
   if(running){running = false;}else{running = true;}
 }
 void InterruptHandler4(){
+  
   if((millis()-timestamp4 )<200)return;
   timestamp4 = millis();
-  led.setLedColor(3,BLAU);
-  delay(100);
+  led.setLedColor(3, BLAU);
+  //kompass.resetZwert();
+  //delay(100);
   initKompass();
-  //Serial1.begin(9600);
-  //Serial2.begin(9600);
-  delay(500);
+  //delay(1000);
 }
 void initButtons(){
   attachInterrupt(digitalPinToInterrupt(B_RO_PIN), InterruptHandler1,RISING);//Team select

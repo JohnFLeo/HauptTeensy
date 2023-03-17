@@ -7,7 +7,7 @@ Robot::Robot(){
 }
 
 void Robot::drive(int velocity, int angle, int angularVelocity){
-  int maxV = getMaxVelocity(angle, 255 - angularVelocity);
+  int maxV = getMaxVelocity(angle, 255 + angularVelocity);
   //Serial.print("MaxV: ");Serial.println( maxV);
   if(velocity> maxV && velocity >= 0){
     Motor_VL.drive(angle, maxV, angularVelocity);
@@ -30,18 +30,18 @@ void Robot::drive(int velocity, int angle, int angularVelocity){
 void Robot::motorFahren(int index){
   switch (index)
   {
-  case 0:
+  case 1:
     Motor_VL.setSpeed(100);
     break;
-  case 1:
+  case 3:
     Motor_VR.setSpeed(100);
     break;
-  case 2:
+  case 0:
     Motor_HL.setSpeed(100);
-  break;
-  case 3:
+    break;
+  case 2:
     Motor_HR.setSpeed(100);
-  break;
+    break;
   default:
     break;
   }

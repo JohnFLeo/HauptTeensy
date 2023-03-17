@@ -54,10 +54,10 @@ private:
     M4_IN2
   };
   double geschw[4] ={
-    0.7,
-    0.7,
-    0.9,
-    0.5
+    1,
+    1,
+    1,
+    1
   };
 public:
   Motor(Wheel, int nr);

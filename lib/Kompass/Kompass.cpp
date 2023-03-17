@@ -11,6 +11,9 @@ int Kompass::gibZWert(){
     delay(50);
 }
 //public
+void Kompass::resetZwert(){
+    zWertNull = gibZWert();
+}
 bool Kompass::starten(){
     if(!bno.begin()){   
         //Fehler!
